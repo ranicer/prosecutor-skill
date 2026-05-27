@@ -434,28 +434,217 @@ def create_jianchayijian(data):
     return doc
 
 
+def create_kangsu(data):
+    """
+    生成抗诉书
+
+    data: dict, 包含以下字段：
+    - procuratorate: 机关名称
+    - case_number: 文号
+    - original_judgment: 原审判决/裁定概况
+    - defendant: 被告人信息
+    - reasons: 抗诉理由列表 [{"type": "事实认定错误", "content": "..."}]
+    - legal_basis: 法律依据
+    - opinion: 抗诉意见
+    """
+    doc = Document()
+    set_page_margins(doc)
+
+    add_title(doc, data.get("procuratorate", "×××人民检察院"))
+    add_title(doc, "抗 诉 书")
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.CENTER)
+    run = p.add_run(data.get("case_number", "×检×刑抗〔20××〕×号"))
+    set_font(run)
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "一、原审判决/裁定概况")
+    add_body_text(doc, data.get("original_judgment", "（原审判决/裁定概况）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "二、被告人基本情况")
+    d = data.get("defendant", {})
+    info = (
+        f"被告人{d.get('name', '×××')}，{d.get('gender', '男')}，"
+        f"{d.get('birth_date', '×年×月×日')}出生，"
+        f"公民身份号码{d.get('id_number', '×××')}，"
+        f"{d.get('ethnicity', '×')}族，"
+        f"文化程度{d.get('education', '×××')}，"
+        f"户籍所在地{d.get('household', '×××')}，"
+        f"现住{d.get('address', '×××')}，"
+        f"职业{d.get('occupation', '×××')}。"
+    )
+    add_body_text(doc, info)
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "三、抗诉理由")
+    add_body_text(doc, "本院认为，上述判决/裁定确有错误，理由如下：")
+
+    for i, reason in enumerate(data.get("reasons", []), 1):
+        add_body_text(doc, f"（{_cn_num(i)}）{reason.get('type', '×××错误')}", bold=True)
+        add_body_text(doc, reason.get("content", "（具体理由）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "四、法律依据")
+    add_body_text(doc, data.get("legal_basis",
+        "根据《中华人民共和国刑事诉讼法》第二百二十八条之规定，"
+        "特向×××人民法院提出抗诉。"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "五、抗诉意见")
+    add_body_text(doc, data.get("opinion",
+        "综上所述，原审判决/裁定存在上述错误，请依法改判/发回重审。"))
+
+    add_empty_line(doc, 2)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("court", "×××人民法院"))
+    set_font(run)
+
+    add_empty_line(doc)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("procuratorate", "×××人民检察院"))
+    set_font(run)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run("检察员：×××")
+    set_font(run)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("date", "20××年×月×日"))
+    set_font(run)
+
+    return doc
+
+
+def create_shencha_baogao(data):
+    """
+    生成案件审查报告
+
+    data: dict
+    """
+    doc = Document()
+    set_page_margins(doc)
+
+    add_title(doc, "案 件 审 查 报 告")
+
+    add_empty_line(doc)
+
+    # 案件基本信息
+    add_heading_text(doc, "一、案件来源")
+    add_body_text(doc, data.get("case_source",
+        "×××公安局于20××年×月×日将犯罪嫌疑人×××涉嫌×××罪一案移送本院审查起诉。"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "二、犯罪嫌疑人/被告人基本情况")
+    for i, d in enumerate(data.get("defendants", [data.get("defendant", {})]), 1):
+        info = (
+            f"{i}. 被告人{d.get('name', '×××')}，{d.get('gender', '男')}，"
+            f"{d.get('birth_date', '×年×月×日')}出生，"
+            f"公民身份号码{d.get('id_number', '×××')}，"
+            f"{d.get('ethnicity', '×')}族，"
+            f"文化程度{d.get('education', '×××')}，"
+            f"职业{d.get('occupation', '×××')}。"
+        )
+        add_body_text(doc, info)
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "三、案件事实")
+    add_body_text(doc, "（一）公安机关认定的犯罪事实", bold=True)
+    add_body_text(doc, data.get("police_facts", "（摘录起诉意见书认定的犯罪事实）"))
+    add_body_text(doc, "（二）经审查查明的犯罪事实", bold=True)
+    add_body_text(doc, data.get("facts", "（根据证据审查后认定的事实）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "四、证据情况")
+    evidence = data.get("evidence", [])
+    if evidence:
+        for i, ev in enumerate(evidence, 1):
+            add_body_text(doc, f"{i}. {ev}")
+    else:
+        add_body_text(doc, "（证据清单）")
+
+    add_body_text(doc, "证据分析：", bold=True)
+    add_body_text(doc, data.get("evidence_analysis", "（证据合法性、真实性、关联性分析）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "五、法律适用分析")
+    add_body_text(doc, data.get("legal_analysis", "（犯罪构成分析、此罪彼罪分析）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "六、量刑情节分析")
+    add_body_text(doc, data.get("sentencing_analysis", "（法定和酌定量刑情节分析）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "七、认罪认罚情况")
+    add_body_text(doc, data.get("plea_status", "（认罪认罚情况说明）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "八、处理意见")
+    add_body_text(doc, data.get("opinion",
+        "经审查，本案犯罪事实清楚，证据确实、充分，建议提起公诉。"))
+
+    add_empty_line(doc, 2)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run("承办人：×××")
+    set_font(run)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("date", "20××年×月×日"))
+    set_font(run)
+
+    return doc
+
+
+def _cn_num(n):
+    """数字转中文"""
+    cn = {1: "一", 2: "二", 3: "三", 4: "四", 5: "五",
+          6: "六", 7: "七", 8: "八", 9: "九", 10: "十"}
+    return cn.get(n, str(n))
+
+
 def main():
     parser = argparse.ArgumentParser(description="检察文书格式化工具")
-    parser.add_argument("type", choices=["起诉书", "不起诉决定书", "审查逮捕意见书"],
-                        help="文书类型")
+    doc_types = ["起诉书", "不起诉决定书", "审查逮捕意见书", "抗诉书", "案件审查报告"]
+    parser.add_argument("type", choices=doc_types, help="文书类型")
     parser.add_argument("json_file", help="案件信息 JSON 文件路径")
     parser.add_argument("-o", "--output", help="输出 Word 文件路径（默认与 JSON 文件同名）")
 
     args = parser.parse_args()
 
-    # 读取 JSON 数据
     with open(args.json_file, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # 生成文书
-    if args.type == "起诉书":
-        doc = create_qishu(data)
-    elif args.type == "不起诉决定书":
-        doc = create_buqisu(data)
-    elif args.type == "审查逮捕意见书":
-        doc = create_jianchayijian(data)
+    type_map = {
+        "起诉书": create_qishu,
+        "不起诉决定书": create_buqisu,
+        "审查逮捕意见书": create_jianchayijian,
+        "抗诉书": create_kangsu,
+        "案件审查报告": create_shencha_baogao,
+    }
+    doc = type_map[args.type](data)
 
-    # 保存文件
     if args.output:
         output_path = args.output
     else:
@@ -472,22 +661,24 @@ def generate_from_dict(doc_type, data, output_path):
     从字典数据生成检察文书
 
     Args:
-        doc_type: 文书类型 ("起诉书" / "不起诉决定书" / "审查逮捕意见书")
+        doc_type: 文书类型
         data: 案件信息字典
         output_path: 输出 Word 文件路径
 
     Returns:
         输出文件路径
     """
-    if doc_type == "起诉书":
-        doc = create_qishu(data)
-    elif doc_type == "不起诉决定书":
-        doc = create_buqisu(data)
-    elif doc_type == "审查逮捕意见书":
-        doc = create_jianchayijian(data)
-    else:
-        raise ValueError(f"不支持的文书类型：{doc_type}")
+    type_map = {
+        "起诉书": create_qishu,
+        "不起诉决定书": create_buqisu,
+        "审查逮捕意见书": create_jianchayijian,
+        "抗诉书": create_kangsu,
+        "案件审查报告": create_shencha_baogao,
+    }
+    if doc_type not in type_map:
+        raise ValueError(f"不支持的文书类型：{doc_type}，支持：{list(type_map.keys())}")
 
+    doc = type_map[doc_type](data)
     doc.save(output_path)
     return output_path
 
