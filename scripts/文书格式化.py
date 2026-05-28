@@ -617,6 +617,507 @@ def create_shencha_baogao(data):
     return doc
 
 
+def create_jiancha_jianyi(data):
+    """
+    生成检察建议书
+
+    data: dict, 包含以下字段：
+    - procuratorate: 机关名称
+    - case_number: 文号
+    - target_unit: 被建议单位名称
+    - case_source: 案件来源
+    - facts: 调查核实情况
+    - problems: 存在的问题列表
+    - causes: 问题原因分析
+    - suggestions: 检察建议列表
+    - legal_basis: 法律依据
+    - deadline: 落实期限（默认"三个月"）
+    """
+    doc = Document()
+    set_page_margins(doc)
+
+    add_title(doc, data.get("procuratorate", "×××人民检察院"))
+    add_title(doc, "检 察 建 议 书")
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.CENTER)
+    run = p.add_run(data.get("case_number", "×检×建〔20××〕×号"))
+    set_font(run)
+
+    add_empty_line(doc)
+
+    # 被建议单位
+    p = doc.add_paragraph()
+    set_paragraph_format(p, first_line_indent=Cm(0.74))
+    run = p.add_run(f"{data.get('target_unit', '×××（被建议单位）')}：")
+    set_font(run)
+
+    # 案件来源
+    add_heading_text(doc, "一、案件来源")
+    add_body_text(doc, data.get("case_source",
+        "本院在办理×××案件/开展×××工作中，发现以下问题："))
+
+    add_empty_line(doc)
+
+    # 调查核实情况
+    add_heading_text(doc, "二、调查核实情况")
+    add_body_text(doc, data.get("facts", "（调查核实过程和发现的事实）"))
+
+    add_empty_line(doc)
+
+    # 存在的问题
+    add_heading_text(doc, "三、存在的问题")
+    for i, problem in enumerate(data.get("problems", ["（问题一）"]), 1):
+        add_body_text(doc, f"{i}. {problem}")
+
+    add_empty_line(doc)
+
+    # 问题原因
+    if data.get("causes"):
+        add_heading_text(doc, "四、问题分析")
+        add_body_text(doc, data["causes"])
+
+        add_empty_line(doc)
+        sug_section = "五、检察建议"
+    else:
+        sug_section = "四、检察建议"
+
+    # 检察建议
+    add_heading_text(doc, sug_section)
+    add_body_text(doc,
+        "为促进依法行政/严格执法/公正司法/社会治理，"
+        "根据《中华人民共和国人民检察院组织法》第二十一条之规定，现提出如下建议：")
+    for i, sug in enumerate(data.get("suggestions", ["（建议一）"]), 1):
+        add_body_text(doc, f"{i}. {sug}")
+
+    add_empty_line(doc)
+
+    # 法律依据
+    add_heading_text(doc, "法律依据")
+    add_body_text(doc, data.get("legal_basis", "（法律依据）"))
+
+    add_body_text(doc,
+        f"请你单位自收到本建议书之日起{data.get('deadline', '三个月')}内依法落实，"
+        "并将落实情况书面回复本院。")
+
+    add_empty_line(doc, 2)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("procuratorate", "×××人民检察院"))
+    set_font(run)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("date", "20××年×月×日"))
+    set_font(run)
+
+    return doc
+
+
+def create_jiuzheng(data):
+    """
+    生成纠正违法通知书
+
+    data: dict, 包含以下字段：
+    - procuratorate: 机关名称
+    - case_number: 文号
+    - target_unit: 被通知单位名称（公安/法院/看守所等）
+    - case_source: 案件来源
+    - illegal_facts: 违法事实
+    - legal_basis: 法律依据
+    - correction_opinion: 纠正意见
+    """
+    doc = Document()
+    set_page_margins(doc)
+
+    add_title(doc, data.get("procuratorate", "×××人民检察院"))
+    add_title(doc, "纠 正 违 法 通 知 书")
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.CENTER)
+    run = p.add_run(data.get("case_number", "×检×纠违〔20××〕×号"))
+    set_font(run)
+
+    add_empty_line(doc)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, first_line_indent=Cm(0.74))
+    run = p.add_run(f"{data.get('target_unit', '×××')}：")
+    set_font(run)
+
+    add_heading_text(doc, "一、案件来源")
+    add_body_text(doc, data.get("case_source",
+        "本院在办理×××案件/开展法律监督工作中，发现你单位存在以下违法行为："))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "二、违法事实")
+    add_body_text(doc, data.get("illegal_facts", "（违法事实）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "三、法律依据")
+    add_body_text(doc, data.get("legal_basis", "（法律依据）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "四、纠正意见")
+    add_body_text(doc, data.get("correction_opinion",
+        "上述行为违反了法律规定，请你单位依法予以纠正，并将纠正情况书面回复本院。"))
+
+    add_empty_line(doc, 2)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("procuratorate", "×××人民检察院"))
+    set_font(run)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("date", "20××年×月×日"))
+    set_font(run)
+
+    return doc
+
+
+def create_tuibu_tigang(data):
+    """
+    生成退回补充侦查提纲
+
+    data: dict, 包含以下字段：
+    - procuratorate: 机关名称
+    - case_number: 文号
+    - case基本情况: 案件基本情况
+    - current_evidence: 现有证据情况
+    - supplement_items: 需要补充侦查的事项列表
+    - supplement_direction: 补充侦查方向和建议
+    """
+    doc = Document()
+    set_page_margins(doc)
+
+    add_title(doc, "退 回 补 充 侦 查 提 纲")
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.CENTER)
+    run = p.add_run(data.get("case_number", ""))
+    set_font(run)
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "一、案件基本情况")
+    add_body_text(doc, data.get("case基本情况", "（案件基本情况）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "二、现有证据情况")
+    add_body_text(doc, data.get("current_evidence", "（现有证据情况）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "三、需要补充侦查的事项")
+    for i, item in enumerate(data.get("supplement_items", ["（补充事项一）"]), 1):
+        add_body_text(doc, f"{i}. {item}")
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "四、补充侦查的方向和建议")
+    add_body_text(doc, data.get("supplement_direction", "（补充侦查方向和建议）"))
+
+    add_empty_line(doc, 2)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run("承办人：×××")
+    set_font(run)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("date", "20××年×月×日"))
+    set_font(run)
+
+    return doc
+
+
+def create_jiya_bishencha(data):
+    """
+    生成羁押必要性审查建议书
+
+    data: dict, 包含以下字段：
+    - procuratorate: 机关名称
+    - case_number: 文号
+    - suspect: 犯罪嫌疑人信息
+    - case_facts: 案件事实
+    - custody_reason: 羁押理由
+    - review_opinion: 审查意见（建议释放/变更强制措施的理由）
+    - legal_basis: 法律依据
+    """
+    doc = Document()
+    set_page_margins(doc)
+
+    add_title(doc, data.get("procuratorate", "×××人民检察院"))
+    add_title(doc, "羁 押 必 要 性 审 查 建 议 书")
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.CENTER)
+    run = p.add_run(data.get("case_number", "×检×羁审〔20××〕×号"))
+    set_font(run)
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "一、犯罪嫌疑人基本情况")
+    d = data.get("suspect", {})
+    info = (
+        f"犯罪嫌疑人{d.get('name', '×××')}，{d.get('gender', '男')}，"
+        f"{d.get('birth_date', '×年×月×日')}出生，"
+        f"公民身份号码{d.get('id_number', '×××')}，"
+        f"{d.get('ethnicity', '×')}族，"
+        f"文化程度{d.get('education', '×××')}，"
+        f"职业{d.get('occupation', '×××')}。"
+    )
+    add_body_text(doc, info)
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "二、案件事实")
+    add_body_text(doc, data.get("case_facts", "（案件事实）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "三、羁押情况")
+    add_body_text(doc, data.get("custody_reason", "（羁押理由和现状）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "四、审查意见")
+    add_body_text(doc, data.get("review_opinion", "（审查意见：建议释放或变更强制措施的理由）"))
+
+    add_empty_line(doc)
+
+    add_heading_text(doc, "五、法律依据")
+    add_body_text(doc, data.get("legal_basis",
+        "根据《中华人民共和国刑事诉讼法》第九十五条之规定，"
+        "建议对犯罪嫌疑人×××变更强制措施为取保候审/予以释放。"))
+
+    add_empty_line(doc, 2)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run("承办人：×××")
+    set_font(run)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("date", "20××年×月×日"))
+    set_font(run)
+
+    return doc
+
+
+def create_renzui_jujieshu(data):
+    """
+    生成认罪认罚具结书
+
+    data: dict, 包含以下字段：
+    - procuratorate: 机关名称
+    - case_number: 文号
+    - suspect: 犯罪嫌疑人信息
+    - case_facts: 案件基本情况
+    - admitted_facts: 承认的犯罪事实
+    - agreed_charges: 同意的罪名
+    - sentencing_recommendation: 量刑建议
+    - program_suggestion: 程序适用建议（速裁/简易/普通）
+    - defense_lawyer: 辩护人/值班律师信息
+    """
+    doc = Document()
+    set_page_margins(doc)
+
+    add_title(doc, data.get("procuratorate", "×××人民检察院"))
+    add_title(doc, "认 罪 认 罚 具 结 书")
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.CENTER)
+    run = p.add_run(data.get("case_number", ""))
+    set_font(run)
+
+    add_empty_line(doc)
+
+    # 犯罪嫌疑人基本信息
+    add_heading_text(doc, "一、犯罪嫌疑人基本信息")
+    d = data.get("suspect", {})
+    info = (
+        f"犯罪嫌疑人{d.get('name', '×××')}，{d.get('gender', '男')}，"
+        f"{d.get('birth_date', '×年×月×日')}出生，"
+        f"公民身份号码{d.get('id_number', '×××')}，"
+        f"{d.get('ethnicity', '×')}族，"
+        f"文化程度{d.get('education', '×××')}，"
+        f"职业{d.get('occupation', '×××')}。"
+    )
+    add_body_text(doc, info)
+
+    add_empty_line(doc)
+
+    # 案件基本情况
+    add_heading_text(doc, "二、案件基本情况")
+    add_body_text(doc, data.get("case_facts", "（案件基本情况）"))
+
+    add_empty_line(doc)
+
+    # 认罪认罚内容
+    add_heading_text(doc, "三、认罪认罚内容")
+    add_body_text(doc, f"犯罪嫌疑人{d.get('name', '×××')}自愿承认以下犯罪事实：")
+    add_body_text(doc, data.get("admitted_facts", "（承认的犯罪事实）"))
+    add_body_text(doc, f"同意以{data.get('agreed_charges', '×××')}罪追究其刑事责任。")
+
+    add_empty_line(doc)
+
+    # 量刑建议
+    add_heading_text(doc, "四、量刑建议")
+    sr = data.get("sentencing_recommendation", {})
+    if isinstance(sr, dict):
+        add_body_text(doc, f"主刑建议：{sr.get('main_penalty', '（主刑）')}")
+        add_body_text(doc, f"附加刑建议：{sr.get('additional_penalty', '（附加刑）')}")
+        add_body_text(doc, f"缓刑建议：{sr.get('probation', '（是否适用缓刑）')}")
+    else:
+        add_body_text(doc, str(sr) if sr else "（量刑建议）")
+
+    add_empty_line(doc)
+
+    # 程序适用建议
+    add_heading_text(doc, "五、程序适用建议")
+    add_body_text(doc, f"建议适用{data.get('program_suggestion', '简易/速裁/普通')}程序。")
+
+    add_empty_line(doc)
+
+    # 法律后果告知
+    add_heading_text(doc, "六、法律后果告知")
+    add_body_text(doc,
+        "犯罪嫌疑人已知悉认罪认罚的法律后果，包括："
+        "自愿认罪将依法从宽处理；如违反具结书内容，可能影响从宽幅度。")
+
+    add_empty_line(doc)
+
+    # 辩护人/值班律师
+    if data.get("defense_lawyer"):
+        add_heading_text(doc, "七、辩护人/值班律师")
+        add_body_text(doc, data["defense_lawyer"])
+        add_body_text(doc, "辩护人/值班律师确认：犯罪嫌疑人系自愿认罪认罚，已提供法律帮助。")
+
+    add_empty_line(doc, 2)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(f"犯罪嫌疑人：{d.get('name', '×××')}")
+    set_font(run)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("date", "20××年×月×日"))
+    set_font(run)
+
+    if data.get("defense_lawyer"):
+        add_empty_line(doc)
+        p = doc.add_paragraph()
+        set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+        run = p.add_run("辩护人/值班律师：×××")
+        set_font(run)
+
+        p = doc.add_paragraph()
+        set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+        run = p.add_run(data.get("date", "20××年×月×日"))
+        set_font(run)
+
+    return doc
+
+
+def create_liangxing_jianyi(data):
+    """
+    生成量刑建议书
+
+    data: dict, 包含以下字段：
+    - procuratorate: 机关名称
+    - case_number: 文号
+    - defendant: 被告人信息
+    - charge: 罪名
+    - facts_summary: 犯罪事实摘要
+    - sentencing_circumstances: 量刑情节分析
+    - main_penalty: 主刑建议
+    - additional_penalty: 附加刑建议（罚金等）
+    - probation: 是否建议缓刑及理由
+    - legal_basis: 法律依据
+    """
+    doc = Document()
+    set_page_margins(doc)
+
+    add_title(doc, data.get("procuratorate", "×××人民检察院"))
+    add_title(doc, "量 刑 建 议 书")
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.CENTER)
+    run = p.add_run(data.get("case_number", ""))
+    set_font(run)
+
+    add_empty_line(doc)
+
+    # 被告人基本情况
+    add_heading_text(doc, "一、被告人基本情况")
+    d = data.get("defendant", {})
+    info = (
+        f"被告人{d.get('name', '×××')}，{d.get('gender', '男')}，"
+        f"{d.get('birth_date', '×年×月×日')}出生，"
+        f"公民身份号码{d.get('id_number', '×××')}，"
+        f"{d.get('ethnicity', '×')}族，"
+        f"文化程度{d.get('education', '×××')}，"
+        f"职业{d.get('occupation', '×××')}。"
+    )
+    add_body_text(doc, info)
+
+    add_empty_line(doc)
+
+    # 涉嫌罪名及犯罪事实
+    add_heading_text(doc, "二、涉嫌罪名及犯罪事实")
+    add_body_text(doc, f"被告人{d.get('name', '×××')}涉嫌{data.get('charge', '×××')}罪。")
+    add_body_text(doc, data.get("facts_summary", "（犯罪事实摘要）"))
+
+    add_empty_line(doc)
+
+    # 量刑情节分析
+    add_heading_text(doc, "三、量刑情节分析")
+    add_body_text(doc, data.get("sentencing_circumstances", "（量刑情节分析）"))
+
+    add_empty_line(doc)
+
+    # 量刑建议
+    add_heading_text(doc, "四、量刑建议")
+    add_body_text(doc, f"主刑建议：{data.get('main_penalty', '（主刑建议）')}")
+    if data.get("additional_penalty"):
+        add_body_text(doc, f"附加刑建议：{data['additional_penalty']}")
+    if data.get("probation"):
+        add_body_text(doc, f"缓刑建议：{data['probation']}")
+
+    add_empty_line(doc)
+
+    # 法律依据
+    add_heading_text(doc, "五、法律依据")
+    add_body_text(doc, data.get("legal_basis",
+        "根据《中华人民共和国刑事诉讼法》第一百七十六条之规定，"
+        "提出以上量刑建议，请合议庭依法采纳。"))
+
+    add_empty_line(doc, 2)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run("检察员：×××")
+    set_font(run)
+
+    p = doc.add_paragraph()
+    set_paragraph_format(p, alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+    run = p.add_run(data.get("date", "20××年×月×日"))
+    set_font(run)
+
+    return doc
+
+
 def _cn_num(n):
     """数字转中文"""
     cn = {1: "一", 2: "二", 3: "三", 4: "四", 5: "五",
@@ -626,8 +1127,20 @@ def _cn_num(n):
 
 def main():
     parser = argparse.ArgumentParser(description="检察文书格式化工具")
-    doc_types = ["起诉书", "不起诉决定书", "审查逮捕意见书", "抗诉书", "案件审查报告"]
-    parser.add_argument("type", choices=doc_types, help="文书类型")
+    type_map = {
+        "起诉书": create_qishu,
+        "不起诉决定书": create_buqisu,
+        "审查逮捕意见书": create_jianchayijian,
+        "抗诉书": create_kangsu,
+        "案件审查报告": create_shencha_baogao,
+        "检察建议书": create_jiancha_jianyi,
+        "纠正违法通知书": create_jiuzheng,
+        "退补提纲": create_tuibu_tigang,
+        "羁押必要性审查建议书": create_jiya_bishencha,
+        "认罪认罚具结书": create_renzui_jujieshu,
+        "量刑建议书": create_liangxing_jianyi,
+    }
+    parser.add_argument("type", choices=list(type_map.keys()), help="文书类型")
     parser.add_argument("json_file", help="案件信息 JSON 文件路径")
     parser.add_argument("-o", "--output", help="输出 Word 文件路径（默认与 JSON 文件同名）")
 
@@ -635,14 +1148,6 @@ def main():
 
     with open(args.json_file, "r", encoding="utf-8") as f:
         data = json.load(f)
-
-    type_map = {
-        "起诉书": create_qishu,
-        "不起诉决定书": create_buqisu,
-        "审查逮捕意见书": create_jianchayijian,
-        "抗诉书": create_kangsu,
-        "案件审查报告": create_shencha_baogao,
-    }
     doc = type_map[args.type](data)
 
     if args.output:
@@ -674,6 +1179,12 @@ def generate_from_dict(doc_type, data, output_path):
         "审查逮捕意见书": create_jianchayijian,
         "抗诉书": create_kangsu,
         "案件审查报告": create_shencha_baogao,
+        "检察建议书": create_jiancha_jianyi,
+        "纠正违法通知书": create_jiuzheng,
+        "退补提纲": create_tuibu_tigang,
+        "羁押必要性审查建议书": create_jiya_bishencha,
+        "认罪认罚具结书": create_renzui_jujieshu,
+        "量刑建议书": create_liangxing_jianyi,
     }
     if doc_type not in type_map:
         raise ValueError(f"不支持的文书类型：{doc_type}，支持：{list(type_map.keys())}")
